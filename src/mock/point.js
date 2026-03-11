@@ -18,6 +18,10 @@ export const DESTINATIONS = [
     pictures: [
       { src: 'https://loremflickr.com/248/152?random=1', description: 'Bern photo' },
       { src: 'https://loremflickr.com/248/152?random=2', description: 'Bern photo' },
+      { src: 'https://loremflickr.com/248/152?random=3', description: 'Bern photo' },
+      { src: 'https://loremflickr.com/248/152?random=4', description: 'Bern photo' },
+      { src: 'https://loremflickr.com/248/152?random=5', description: 'Bern photo' },
+      { src: 'https://loremflickr.com/248/152?random=6', description: 'Bern photo' },
     ],
   },
   {
@@ -25,7 +29,10 @@ export const DESTINATIONS = [
     name: 'Paris',
     description: 'Sed sed nisi sed augue convallis suscipit in sed felis',
     pictures: [
+      { src: 'https://loremflickr.com/248/152?random=1', description: 'Paris photo' },
+      { src: 'https://loremflickr.com/248/152?random=2', description: 'Paris photo' },
       { src: 'https://loremflickr.com/248/152?random=3', description: 'Paris photo' },
+      { src: 'https://loremflickr.com/248/152?random=4', description: 'Paris photo' },
     ],
   },
   {
@@ -33,8 +40,11 @@ export const DESTINATIONS = [
     name: 'Madrid',
     description: 'Sed blandit, eros vel aliquam faucibus, purus ex euismod diam, eu luctus nunc ante ut dui',
     pictures: [
-      { src: 'https://loremflickr.com/248/152?random=4', description: 'Madrid photo' },
-      { src: 'https://loremflickr.com/248/152?random=5', description: 'Madrid photo' },
+      { src: 'https://loremflickr.com/248/152?random=1', description: 'Mardid photo' },
+      { src: 'https://loremflickr.com/248/152?random=2', description: 'Mardid photo' },
+      { src: 'https://loremflickr.com/248/152?random=3', description: 'Mardid photo' },
+      { src: 'https://loremflickr.com/248/152?random=4', description: 'Mardid photo' },
+      { src: 'https://loremflickr.com/248/152?random=5', description: 'Mardid photo' },
     ],
   },
   {
@@ -42,6 +52,11 @@ export const DESTINATIONS = [
     name: 'Oslo',
     description: 'Cras aliquet varius magna, non porta ligula feugiat eget',
     pictures: [
+      { src: 'https://loremflickr.com/248/152?random=1', description: 'Oslo photo' },
+      { src: 'https://loremflickr.com/248/152?random=2', description: 'Oslo photo' },
+      { src: 'https://loremflickr.com/248/152?random=3', description: 'Oslo photo' },
+      { src: 'https://loremflickr.com/248/152?random=4', description: 'Oslo photo' },
+      { src: 'https://loremflickr.com/248/152?random=5', description: 'Oslo photo' },
       { src: 'https://loremflickr.com/248/152?random=6', description: 'Oslo photo' },
     ],
   },
