@@ -1,108 +1,130 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
+import dayjs from 'dayjs';
 import { DESTINATIONS, OFFERS } from '../mock/point.js';
 
-export default class EventEditView {
-  constructor(point = {}) {
-    this.point = point;
+function getDestination(point) {
+  return DESTINATIONS.find((d) => d.id === point.destination);
+}
+
+function getOffersByType(type) {
+  const offersByType = OFFERS.find((offer) => offer.type === type);
+  return offersByType ? offersByType.offers : [];
+}
+
+function createOffersEditTemplate(point) {
+  const offers = getOffersByType(point.type);
+
+  if (!offers.length) {
+    return '';
   }
 
-  getTemplate() {
-    const {
-      type = 'taxi',
-      destination = null,
-      dateFrom = '',
-      dateTo = '',
-      basePrice = '',
-      offers = []
-    } = this.point;
-
-    const destinationData = DESTINATIONS.find((d) => d.id === destination);
-
-    const destinationName = destinationData ? destinationData.name : '';
-    const destinationDescription = destinationData ? destinationData.description : '';
-    const destinationPictures = destinationData ? destinationData.pictures : [];
-
-    const offersForType = OFFERS;
-
-    const offersTemplate = offersForType
-      .map((offer) => {
-        const isChecked = offers.includes(offer.id) ? 'checked' : '';
-        return `
-          <div class="event__offer-selector">
-            <input class="event__offer-checkbox  visually-hidden" id="offer-${offer.id}" type="checkbox" name="offer" ${isChecked}>
-            <label class="event__offer-label" for="offer-${offer.id}">
-              <span class="event__offer-title">${offer.title}</span>
-              +€&nbsp;<span class="event__offer-price">${offer.price}</span>
-            </label>
-          </div>
-        `;
-      })
-      .join('');
-
-    const picturesTemplate = destinationPictures
-      .map((pic) => `<img class="event__photo" src="${pic.src}" alt="${pic.description}">`)
-      .join('');
-
+  const items = offers.map((offer) => {
+    const checked = point.offers.includes(offer.id) ? 'checked' : '';
     return `
+      <div class="event__offer-selector">
+        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer" ${checked}>
+        <label class="event__offer-label" for="event-offer-${offer.id}">
+          <span class="event__offer-title">${offer.title}</span>
+          &plus;&euro;&nbsp;<span class="event__offer-price">${offer.price}</span>
+        </label>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <section class="event__section  event__section--offers">
+      <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+      <div class="event__available-offers">
+        ${items}
+      </div>
+    </section>
+  `;
+}
+
+function createDestinationTemplate(point) {
+  const destination = getDestination(point);
+
+  if (!destination) {
+    return '';
+  }
+
+  return `
+    <section class="event__section  event__section--destination">
+      <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+      <p class="event__destination-description">${destination.description}</p>
+    </section>
+  `;
+}
+
+function createEditFormTemplate(point) {
+  const destination = getDestination(point);
+
+  return `
+    <li class="trip-events__item">
       <form class="event event--edit" action="#" method="post">
         <header class="event__header">
           <div class="event__type-wrapper">
-            <label class="event__type  event__type-btn" for="event-type-toggle-1">
-              <span class="event__type-icon">
-                <img src="img/icons/${type}.png" width="17" height="17" alt="Event type icon">
-              </span>
+            <label class="event__type  event__type-btn">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${point.type}.png" alt="Event type icon">
             </label>
           </div>
 
           <div class="event__field-group  event__field-group--destination">
-            <label class="event__label  event__type-output" for="event-destination-1">
-              ${type}
-            </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destinationName}">
+            <label class="event__label  event__type-output">${point.type}</label>
+            <input class="event__input  event__input--destination" type="text" name="event-destination" value="${destination?.name ?? ''}">
           </div>
 
           <div class="event__field-group  event__field-group--time">
-            <input class="event__input  event__input--time" type="text" name="event-start-time" value="${dateFrom}">
-            —
-            <input class="event__input  event__input--time" type="text" name="event-end-time" value="${dateTo}">
+            <input class="event__input  event__input--time" type="text" name="event-start-time" value="${dayjs(point.dateFrom).format('DD/MM/YY HH:mm')}">
+            &mdash;
+            <input class="event__input  event__input--time" type="text" name="event-end-time" value="${dayjs(point.dateTo).format('DD/MM/YY HH:mm')}">
           </div>
 
           <div class="event__field-group  event__field-group--price">
-            <input class="event__input  event__input--price" type="number" name="event-price" value="${basePrice}">
+            <label class="event__label">&euro;</label>
+            <input class="event__input  event__input--price" type="number" name="event-price" value="${point.basePrice}">
           </div>
+
+          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+          <button class="event__reset-btn" type="reset">Delete</button>
+          <button class="event__rollup-btn" type="button">
+            <span class="visually-hidden">Close event</span>
+          </button>
         </header>
 
         <section class="event__details">
-          <section class="event__section  event__section--offers">
-            <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-            <div class="event__available-offers">
-              ${offersTemplate}
-            </div>
-          </section>
-
-          <section class="event__section  event__section--destination">
-            <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-            <p class="event__destination-description">${destinationDescription}</p>
-
-            <div class="event__photos-container">
-              <div class="event__photos-tape">
-                ${picturesTemplate}
-              </div>
-            </div>
-          </section>
+          ${createOffersEditTemplate(point)}
+          ${createDestinationTemplate(point)}
         </section>
       </form>
-    `;
+    </li>
+  `;
+}
+
+export default class EventEditView extends AbstractView {
+  #point;
+
+  constructor(point) {
+    super();
+    this.#point = point;
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.getTemplate());
-    }
-    return this.element;
+  get template() {
+    return createEditFormTemplate(this.#point);
   }
 
-  removeElement() {
-    this.element = null;
+  setSubmitHandler(callback) {
+    this.element
+      .querySelector('form')
+      .addEventListener('submit', (evt) => {
+        evt.preventDefault();
+        callback();
+      });
+  }
+
+  setRollupClickHandler(callback) {
+    this.element
+      .querySelector('.event__rollup-btn')
+      .addEventListener('click', callback);
   }
 }

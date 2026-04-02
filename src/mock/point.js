@@ -1,91 +1,76 @@
-export const POINT_TYPES = [
-  'taxi',
-  'bus',
-  'train',
-  'ship',
-  'drive',
-  'flight',
-  'check-in',
-  'sightseeing',
-  'restaurant',
-];
+import dayjs from 'dayjs';
 
 export const DESTINATIONS = [
   {
     id: 1,
-    name: 'Bern',
-    description: 'Aliquam id orci ut lectus varius viverra',
-    pictures: [
-      { src: 'https://loremflickr.com/248/152?random=1', description: 'Bern photo' },
-      { src: 'https://loremflickr.com/248/152?random=2', description: 'Bern photo' },
-      { src: 'https://loremflickr.com/248/152?random=3', description: 'Bern photo' },
-      { src: 'https://loremflickr.com/248/152?random=4', description: 'Bern photo' },
-      { src: 'https://loremflickr.com/248/152?random=5', description: 'Bern photo' },
-      { src: 'https://loremflickr.com/248/152?random=6', description: 'Bern photo' },
-    ],
+    name: 'Amsterdam',
+    description: 'Amsterdam — famous for its crowded street markets',
+    pictures: []
   },
   {
     id: 2,
-    name: 'Paris',
-    description: 'Sed sed nisi sed augue convallis suscipit in sed felis',
-    pictures: [
-      { src: 'https://loremflickr.com/248/152?random=1', description: 'Paris photo' },
-      { src: 'https://loremflickr.com/248/152?random=2', description: 'Paris photo' },
-      { src: 'https://loremflickr.com/248/152?random=3', description: 'Paris photo' },
-      { src: 'https://loremflickr.com/248/152?random=4', description: 'Paris photo' },
-    ],
+    name: 'Geneva',
+    description: 'Geneva — with an old town, museums and parks',
+    pictures: []
   },
   {
     id: 3,
-    name: 'Madrid',
-    description: 'Sed blandit, eros vel aliquam faucibus, purus ex euismod diam, eu luctus nunc ante ut dui',
-    pictures: [
-      { src: 'https://loremflickr.com/248/152?random=1', description: 'Mardid photo' },
-      { src: 'https://loremflickr.com/248/152?random=2', description: 'Mardid photo' },
-      { src: 'https://loremflickr.com/248/152?random=3', description: 'Mardid photo' },
-      { src: 'https://loremflickr.com/248/152?random=4', description: 'Mardid photo' },
-      { src: 'https://loremflickr.com/248/152?random=5', description: 'Mardid photo' },
-    ],
-  },
-  {
-    id: 4,
-    name: 'Oslo',
-    description: 'Cras aliquet varius magna, non porta ligula feugiat eget',
-    pictures: [
-      { src: 'https://loremflickr.com/248/152?random=1', description: 'Oslo photo' },
-      { src: 'https://loremflickr.com/248/152?random=2', description: 'Oslo photo' },
-      { src: 'https://loremflickr.com/248/152?random=3', description: 'Oslo photo' },
-      { src: 'https://loremflickr.com/248/152?random=4', description: 'Oslo photo' },
-      { src: 'https://loremflickr.com/248/152?random=5', description: 'Oslo photo' },
-      { src: 'https://loremflickr.com/248/152?random=6', description: 'Oslo photo' },
-    ],
-  },
+    name: 'Chamonix',
+    description: 'Chamonix — with beautiful mountain views',
+    pictures: []
+  }
 ];
 
 export const OFFERS = [
-  { id: 1, title: 'Add luggage', price: 50 },
-  { id: 2, title: 'Switch to comfort', price: 80 },
-  { id: 3, title: 'Add meal', price: 15 },
-  { id: 4, title: 'Choose seats', price: 5 },
+  {
+    type: 'train',
+    offers: [
+      { id: 1, title: 'Order a breakfast', price: 50 },
+      { id: 2, title: 'Wake up at a certain time', price: 30 }
+    ]
+  },
+  {
+    type: 'flight',
+    offers: [
+      { id: 3, title: 'Add luggage', price: 30 },
+      { id: 4, title: 'Switch to comfort class', price: 100 }
+    ]
+  },
+  {
+    type: 'drive',
+    offers: [
+      { id: 5, title: 'With automatic transmission', price: 40 },
+      { id: 6, title: 'With air conditioning', price: 20 }
+    ]
+  }
 ];
 
-function generateRandomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-export function generateRoutePoint() {
-  const randomType = POINT_TYPES[generateRandomNumber(0, POINT_TYPES.length - 1)];
-  const randomDestination = DESTINATIONS[generateRandomNumber(0, DESTINATIONS.length - 1)].id;
-  const randomPrice = generateRandomNumber(10, 500);
-
-  return {
-    id: crypto.randomUUID(),
-    type: randomType,
-    destination: randomDestination,
-    dateFrom: '2024-03-18T10:30',
-    dateTo: '2024-03-18T11:00',
-    basePrice: randomPrice,
-    offers: [1, 2],
-    isFavorite: Boolean(generateRandomNumber(0, 1)),
-  };
-}
+export const POINTS = [
+  {
+    id: '1',
+    type: 'train',
+    basePrice: 2684,
+    dateFrom: dayjs('2026-03-28T11:00').toDate(),
+    dateTo: dayjs('2026-03-29T10:10').toDate(),
+    destination: 1,
+    offers: [1, 2]
+  },
+  {
+    id: '2',
+    type: 'drive',
+    basePrice: 5003,
+    dateFrom: dayjs('2026-03-21T13:12').toDate(),
+    dateTo: dayjs('2026-03-23T09:32').toDate(),
+    destination: 2,
+    offers: [5, 6]
+  },
+  {
+    id: '3',
+    type: 'flight',
+    basePrice: 697,
+    dateFrom: dayjs('2026-03-24T03:14').toDate(),
+    dateTo: dayjs('2026-03-26T03:20').toDate(),
+    destination: 3,
+    offers: [3, 4]
+  }
+];
