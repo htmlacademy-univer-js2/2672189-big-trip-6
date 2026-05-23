@@ -1,5 +1,7 @@
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import dayjs from 'dayjs';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 import { DESTINATIONS, OFFERS } from '../mock/point.js';
 
 const EVENT_TYPES = [
@@ -120,6 +122,7 @@ function createDestinationTemplate(point) {
 function createEditFormTemplate(point) {
   const destination = getDestination(point);
   const pointId = point.id ?? 'new';
+  const dateFormat = 'DD/MM/YY HH:mm';
 
   return `
     <li class="trip-events__item">
@@ -147,9 +150,9 @@ function createEditFormTemplate(point) {
           </div>
 
           <div class="event__field-group  event__field-group--time">
-            <input class="event__input  event__input--time" type="text" name="event-start-time" value="${dayjs(point.dateFrom).format('DD/MM/YY HH:mm')}">
+            <input class="event__input  event__input--time  event__input--time-start" type="text" name="event-start-time" value="${dayjs(point.dateFrom).format(dateFormat)}">
             &mdash;
-            <input class="event__input  event__input--time" type="text" name="event-end-time" value="${dayjs(point.dateTo).format('DD/MM/YY HH:mm')}">
+            <input class="event__input  event__input--time  event__input--time-end" type="text" name="event-end-time" value="${dayjs(point.dateTo).format(dateFormat)}">
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -176,6 +179,8 @@ function createEditFormTemplate(point) {
 export default class EventEditView extends AbstractStatefulView {
   #submitCallback = null;
   #rollupCallback = null;
+  #startDatePicker = null;
+  #endDatePicker = null;
 
   constructor(point) {
     super();
@@ -205,6 +210,12 @@ export default class EventEditView extends AbstractStatefulView {
     this.setSubmitHandler(this.#submitCallback);
     this.setRollupClickHandler(this.#rollupCallback);
     this.#setInnerHandlers();
+    this.#setDatepickers();
+  }
+
+  removeElement() {
+    this.#destroyDatepickers();
+    super.removeElement();
   }
 
   #setInnerHandlers() {
@@ -223,6 +234,46 @@ export default class EventEditView extends AbstractStatefulView {
     this.element
       .querySelector('.event__input--price')
       .addEventListener('input', this.#priceInputHandler);
+  }
+
+  #setDatepickers() {
+    this.#destroyDatepickers();
+
+    const startInput = this.element.querySelector('.event__input--time-start');
+    const endInput = this.element.querySelector('.event__input--time-end');
+
+    this.#startDatePicker = flatpickr(startInput, {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      'time_24hr': true,
+      defaultDate: this._state.dateFrom,
+      allowInput: true,
+      onChange: ([selectedDate]) => {
+        this._setState({
+          dateFrom: selectedDate,
+        });
+      },
+    });
+
+    this.#endDatePicker = flatpickr(endInput, {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      'time_24hr': true,
+      defaultDate: this._state.dateTo,
+      allowInput: true,
+      onChange: ([selectedDate]) => {
+        this._setState({
+          dateTo: selectedDate,
+        });
+      },
+    });
+  }
+
+  #destroyDatepickers() {
+    this.#startDatePicker?.destroy();
+    this.#endDatePicker?.destroy();
+    this.#startDatePicker = null;
+    this.#endDatePicker = null;
   }
 
   #formSubmitHandler = (evt) => {
