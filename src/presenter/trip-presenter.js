@@ -1,4 +1,5 @@
 import { render, replace } from '../framework/render.js';
+import dayjs from 'dayjs';
 
 import TripInfoView from '../view/trip-info-view.js';
 import FilterView from '../view/filter-view.js';
@@ -28,6 +29,19 @@ function sortByPrice(pointA, pointB) {
   return pointB.basePrice - pointA.basePrice;
 }
 
+function getTripDates(points) {
+  if (points.length === 0) {
+    return {};
+  }
+
+  const sortedByStart = [...points].sort(sortByDay);
+
+  return {
+    dateFrom: dayjs(sortedByStart[0].dateFrom).toDate(),
+    dateTo: dayjs(sortedByStart[sortedByStart.length - 1].dateTo).toDate(),
+  };
+}
+
 export default class TripPresenter {
   #mainContainer;
   #headerContainer;
@@ -48,7 +62,7 @@ export default class TripPresenter {
 
   init() {
     const points = this.#pointsModel.getPoints();
-    render(new TripInfoView(), this.#headerContainer);
+    render(new TripInfoView(getTripDates(points)), this.#headerContainer);
     const filters = [
       { name: 'everything', isDisabled: false, isChecked: true },
       { name: 'future', isDisabled: points.length === 0, isChecked: false },

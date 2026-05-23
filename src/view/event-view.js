@@ -79,7 +79,7 @@ function createEventTemplate(point) {
   return `
     <li class="trip-events__item">
       <div class="event">
-        <time class="event__date" datetime="${dayjs(point.dateFrom).format('YYYY-MM-DD')}">${dateFrom}</time>
+        <time class="event__date" datetime="${point.dateFrom.toISOString()}">${dateFrom}</time>
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${point.type}.png" alt="Event type icon">
         </div>
