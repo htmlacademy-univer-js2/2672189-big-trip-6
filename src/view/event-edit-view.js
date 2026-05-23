@@ -2,7 +2,6 @@ import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
-import { DESTINATIONS, OFFERS } from '../mock/point.js';
 
 const EVENT_TYPES = [
   'taxi',
@@ -16,12 +15,12 @@ const EVENT_TYPES = [
   'restaurant',
 ];
 
-function getDestination(point) {
-  return DESTINATIONS.find((d) => d.id === point.destination);
+function getDestination(point, destinations) {
+  return destinations.find((destination) => destination.id === point.destination);
 }
 
-function getOffersByType(type) {
-  const offersByType = OFFERS.find((offer) => offer.type === type);
+function getOffersByType(type, offers) {
+  const offersByType = offers.find((offer) => offer.type === type);
   return offersByType ? offersByType.offers : [];
 }
 
@@ -45,24 +44,24 @@ function createEventTypeItemsTemplate(currentType, pointId) {
   }).join('');
 }
 
-function createDestinationListTemplate(pointId) {
-  const destinations = DESTINATIONS.map((destination) => `<option value="${destination.name}"></option>`).join('');
+function createDestinationListTemplate(pointId, destinations) {
+  const destinationOptions = destinations.map((destination) => `<option value="${destination.name}"></option>`).join('');
 
   return `
     <datalist id="destination-list-${pointId}">
-      ${destinations}
+      ${destinationOptions}
     </datalist>
   `;
 }
 
-function createOffersEditTemplate(point) {
-  const offers = getOffersByType(point.type);
+function createOffersEditTemplate(point, offers) {
+  const pointOffers = getOffersByType(point.type, offers);
 
-  if (!offers.length) {
+  if (!pointOffers.length) {
     return '';
   }
 
-  const items = offers.map((offer) => {
+  const items = pointOffers.map((offer) => {
     const checked = point.offers.includes(offer.id) ? 'checked' : '';
     return `
       <div class="event__offer-selector">
@@ -103,8 +102,8 @@ function createDestinationPhotosTemplate(pictures) {
   `;
 }
 
-function createDestinationTemplate(point) {
-  const destination = getDestination(point);
+function createDestinationTemplate(point, destinations) {
+  const destination = getDestination(point, destinations);
 
   if (!destination) {
     return '';
@@ -119,8 +118,8 @@ function createDestinationTemplate(point) {
   `;
 }
 
-function createEditFormTemplate(point) {
-  const destination = getDestination(point);
+function createEditFormTemplate(point, destinations, offers) {
+  const destination = getDestination(point, destinations);
   const pointId = point.id ?? 'new';
   const dateFormat = 'DD/MM/YY HH:mm';
 
@@ -146,7 +145,7 @@ function createEditFormTemplate(point) {
           <div class="event__field-group  event__field-group--destination">
             <label class="event__label  event__type-output" for="event-destination-${pointId}">${point.type}</label>
             <input class="event__input  event__input--destination" id="event-destination-${pointId}" type="text" name="event-destination" value="${destination?.name ?? ''}" list="destination-list-${pointId}">
-            ${createDestinationListTemplate(pointId)}
+            ${createDestinationListTemplate(pointId, destinations)}
           </div>
 
           <div class="event__field-group  event__field-group--time">
@@ -168,8 +167,8 @@ function createEditFormTemplate(point) {
         </header>
 
         <section class="event__details">
-          ${createOffersEditTemplate(point)}
-          ${createDestinationTemplate(point)}
+          ${createOffersEditTemplate(point, offers)}
+          ${createDestinationTemplate(point, destinations)}
         </section>
       </form>
     </li>
@@ -182,15 +181,19 @@ export default class EventEditView extends AbstractStatefulView {
   #rollupCallback = null;
   #startDatePicker = null;
   #endDatePicker = null;
+  #destinations;
+  #offers;
 
-  constructor(point) {
+  constructor(point, destinations, offers) {
     super();
+    this.#destinations = destinations;
+    this.#offers = offers;
     this._setState(point);
     this.#setInnerHandlers();
   }
 
   get template() {
-    return createEditFormTemplate(this._state);
+    return createEditFormTemplate(this._state, this.#destinations, this.#offers);
   }
 
   setSubmitHandler(callback) {
@@ -312,7 +315,7 @@ export default class EventEditView extends AbstractStatefulView {
   };
 
   #destinationChangeHandler = (evt) => {
-    const destination = DESTINATIONS.find((item) => item.name === evt.target.value);
+    const destination = this.#destinations.find((item) => item.name === evt.target.value);
 
     if (!destination) {
       return;

@@ -1,9 +1,11 @@
-import { DESTINATIONS } from '../mock/point.js';
-
 export default class DestinationsModel {
-  #destinations = DESTINATIONS;
+  #destinations = [];
 
   getDestinations() {
     return this.#destinations;
+  }
+
+  setDestinations(destinations) {
+    this.#destinations = structuredClone(destinations);
   }
 }

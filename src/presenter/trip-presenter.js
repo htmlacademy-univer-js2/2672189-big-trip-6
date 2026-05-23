@@ -7,7 +7,6 @@ import EventListView from '../view/event-list-view.js';
 import EmptyView from '../view/empty-view.js';
 import PointPresenter from './point-presenter.js';
 import { ActionType, FilterType, SortType } from '../const.js';
-import { DESTINATIONS } from '../mock/point.js';
 
 function sortByDay(pointA, pointB) {
   return pointA.dateFrom - pointB.dateFrom;
@@ -24,11 +23,11 @@ function sortByPrice(pointA, pointB) {
   return pointB.basePrice - pointA.basePrice;
 }
 
-function getDestinationName(destinationId) {
-  return DESTINATIONS.find((destination) => destination.id === destinationId)?.name ?? '';
+function getDestinationName(destinationId, destinations) {
+  return destinations.find((destination) => destination.id === destinationId)?.name ?? '';
 }
 
-function getTripInfo(points) {
+function getTripInfo(points, destinations) {
   if (points.length === 0) {
     return {
       title: '',
@@ -41,7 +40,7 @@ function getTripInfo(points) {
   return {
     dateFrom: dayjs(sortedByStart[0].dateFrom).toDate(),
     dateTo: dayjs(sortedByStart[sortedByStart.length - 1].dateTo).toDate(),
-    title: sortedByStart.map((point) => getDestinationName(point.destination)).filter(Boolean).join(' — '),
+    title: sortedByStart.map((point) => getDestinationName(point.destination, destinations)).filter(Boolean).join(' — '),
     cost: points.reduce((sum, point) => sum + Number(point.basePrice), 0),
   };
 }
@@ -60,14 +59,14 @@ function getEmptyMessage(filterType) {
   }
 }
 
-function createNewPoint() {
+function createNewPoint(destinations) {
   return {
     id: null,
     type: 'flight',
     basePrice: 0,
     dateFrom: new Date(),
     dateTo: dayjs().add(1, 'hour').toDate(),
-    destination: DESTINATIONS[0].id,
+    destination: destinations[0]?.id ?? null,
     offers: [],
     isFavorite: false,
   };
@@ -78,6 +77,8 @@ export default class TripPresenter {
   #headerContainer;
   #pointsModel;
   #filterModel;
+  #destinationsModel;
+  #offersModel;
 
   #eventListComponent = new EventListView();
   #sortComponent = null;
@@ -88,11 +89,13 @@ export default class TripPresenter {
   #isCreatingNewPoint = false;
   #addButtonElement = null;
 
-  constructor({ mainContainer, headerContainer, pointsModel, filterModel }) {
+  constructor({ mainContainer, headerContainer, pointsModel, filterModel, destinationsModel, offersModel }) {
     this.#mainContainer = mainContainer;
     this.#headerContainer = headerContainer;
     this.#pointsModel = pointsModel;
     this.#filterModel = filterModel;
+    this.#destinationsModel = destinationsModel;
+    this.#offersModel = offersModel;
 
     this.#pointsModel.addObserver(this.#handlePointsModelChange);
     this.#filterModel.addObserver(this.#handleFilterModelChange);
@@ -101,6 +104,7 @@ export default class TripPresenter {
   init() {
     this.#addButtonElement = this.#headerContainer.querySelector('.trip-main__event-add-btn');
     this.#addButtonElement.addEventListener('click', this.#handleAddNewPointClick);
+    this.#addButtonElement.disabled = false;
 
     this.#renderTripInfo();
     this.#renderSort();
@@ -110,6 +114,8 @@ export default class TripPresenter {
   #renderPoint(point) {
     const pointPresenter = new PointPresenter({
       pointListContainer: this.#eventListComponent.element,
+      destinations: this.#destinationsModel.getDestinations(),
+      offers: this.#offersModel.getOffers(),
       onDataChange: this.#handleViewAction,
       onModeChange: this.#handleModeChange,
     });
@@ -134,7 +140,7 @@ export default class TripPresenter {
 
   #renderTripInfo() {
     const previousTripInfoComponent = this.#tripInfoComponent;
-    const tripInfo = getTripInfo(this.#getPoints());
+    const tripInfo = getTripInfo(this.#getPoints(), this.#destinationsModel.getDestinations());
 
     this.#tripInfoComponent = new TripInfoView(tripInfo);
 
@@ -168,12 +174,14 @@ export default class TripPresenter {
   #renderNewPoint() {
     this.#newPointPresenter = new PointPresenter({
       pointListContainer: this.#eventListComponent.element,
+      destinations: this.#destinationsModel.getDestinations(),
+      offers: this.#offersModel.getOffers(),
       onDataChange: this.#handleViewAction,
       onModeChange: this.#handleModeChange,
       onViewClose: this.#handleNewPointClose,
     });
 
-    this.#newPointPresenter.init(createNewPoint(), true);
+    this.#newPointPresenter.init(createNewPoint(this.#destinationsModel.getDestinations()), true);
   }
 
   #clearBoard() {
@@ -219,7 +227,7 @@ export default class TripPresenter {
   #handleViewAction = (actionType, _updateType, update) => {
     switch (actionType) {
       case ActionType.UPDATE_POINT:
-        this.#pointsModel.updatePoint(update);
+        this.#pointsModel.updatePoint(update).catch(() => {});
         break;
       case ActionType.ADD_POINT:
         this.#isCreatingNewPoint = false;

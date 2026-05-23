@@ -1,16 +1,15 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import { DESTINATIONS, OFFERS } from '../mock/point.js';
 
 dayjs.extend(duration);
 
-function getDestination(point) {
-  return DESTINATIONS.find((d) => d.id === point.destination);
+function getDestination(point, destinations) {
+  return destinations.find((destination) => destination.id === point.destination);
 }
 
-function getOffersForPoint(point) {
-  const offersByType = OFFERS.find((offer) => offer.type === point.type);
+function getOffersForPoint(point, offers) {
+  const offersByType = offers.find((offer) => offer.type === point.type);
   if (!offersByType) {
     return [];
   }
@@ -66,9 +65,9 @@ function createOffersTemplate(offers) {
   `;
 }
 
-function createEventTemplate(point) {
-  const destination = getDestination(point);
-  const offers = getOffersForPoint(point);
+function createEventTemplate(point, destinations, offers) {
+  const destination = getDestination(point, destinations);
+  const selectedOffers = getOffersForPoint(point, offers);
   const favoriteClassName = point.isFavorite ? 'event__favorite-btn--active' : '';
 
   const dateFrom = formatDate(point.dateFrom);
@@ -95,7 +94,7 @@ function createEventTemplate(point) {
         <p class="event__price">
           &euro;&nbsp;<span class="event__price-value">${point.basePrice}</span>
         </p>
-        ${createOffersTemplate(offers)}
+        ${createOffersTemplate(selectedOffers)}
         <button class="event__favorite-btn ${favoriteClassName}" type="button">
           <span class="visually-hidden">Add to favorite</span>
           <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
@@ -112,14 +111,18 @@ function createEventTemplate(point) {
 
 export default class EventView extends AbstractView {
   #point;
+  #destinations;
+  #offers;
 
-  constructor(point) {
+  constructor(point, destinations, offers) {
     super();
     this.#point = point;
+    this.#destinations = destinations;
+    this.#offers = offers;
   }
 
   get template() {
-    return createEventTemplate(this.#point);
+    return createEventTemplate(this.#point, this.#destinations, this.#offers);
   }
 
   setEditClickHandler(callback) {
