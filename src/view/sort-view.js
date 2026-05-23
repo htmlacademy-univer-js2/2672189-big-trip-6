@@ -1,18 +1,18 @@
 import AbstractView from '../framework/view/abstract-view.js';
 
-function createSortTemplate() {
+function createSortTemplate(currentSortType) {
   return `
     <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
       <div class="trip-sort__item  trip-sort__item--day">
-        <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" checked>
+        <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" data-sort-type="day" ${currentSortType === 'day' ? 'checked' : ''}>
         <label class="trip-sort__btn" for="sort-day">Day</label>
       </div>
       <div class="trip-sort__item  trip-sort__item--time">
-        <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort">
+        <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" data-sort-type="time" ${currentSortType === 'time' ? 'checked' : ''}>
         <label class="trip-sort__btn" for="sort-time">Time</label>
       </div>
       <div class="trip-sort__item  trip-sort__item--price">
-        <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort">
+        <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" data-sort-type="price" ${currentSortType === 'price' ? 'checked' : ''}>
         <label class="trip-sort__btn" for="sort-price">Price</label>
       </div>
     </form>
@@ -20,7 +20,33 @@ function createSortTemplate() {
 }
 
 export default class SortView extends AbstractView {
-  get template() {
-    return createSortTemplate();
+  #currentSortType;
+  #sortTypeChangeHandler = null;
+
+  constructor(currentSortType) {
+    super();
+    this.#currentSortType = currentSortType;
   }
+
+  get template() {
+    return createSortTemplate(this.#currentSortType);
+  }
+
+  setSortTypeChangeHandler(callback) {
+    this.#sortTypeChangeHandler = callback;
+
+    this.element.querySelectorAll('.trip-sort__input').forEach((input) => {
+      input.addEventListener('click', this.#sortTypeChangeHandlerClick);
+    });
+  }
+
+  #sortTypeChangeHandlerClick = (evt) => {
+    const sortType = evt.target.dataset.sortType;
+
+    if (!sortType) {
+      return;
+    }
+
+    this.#sortTypeChangeHandler?.(sortType);
+  };
 }
