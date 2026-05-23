@@ -1,6 +1,6 @@
 import Observable from '../framework/observable.js';
-import { POINTS } from '../mock/point.js';
 import { FilterType, UpdateType } from '../const.js';
+import { adaptPointToClient, adaptPointToServer } from '../adapter/point.js';
 
 function filterPointsByType(points, filterType) {
   const now = new Date();
@@ -19,14 +19,20 @@ function filterPointsByType(points, filterType) {
 }
 
 export default class PointsModel extends Observable {
-  #points = structuredClone(POINTS);
+  #apiService;
+  #points = [];
+
+  constructor(apiService) {
+    super();
+    this.#apiService = apiService;
+  }
 
   getPoints(filterType = FilterType.EVERYTHING) {
     return filterPointsByType(this.#points, filterType);
   }
 
   setPoints(points) {
-    this.#points = structuredClone(points);
+    this.#points = structuredClone(points.map(adaptPointToClient));
     this._notify(UpdateType.MAJOR);
   }
 
@@ -35,7 +41,9 @@ export default class PointsModel extends Observable {
     this._notify(UpdateType.MAJOR);
   }
 
-  updatePoint(updatedPoint) {
+  async updatePoint(updatedPoint) {
+    const response = await this.#apiService.updatePoint(adaptPointToServer(updatedPoint));
+    const adaptedPoint = adaptPointToClient(response);
     const pointIndex = this.#points.findIndex((point) => point.id === updatedPoint.id);
 
     if (pointIndex === -1) {
@@ -44,7 +52,7 @@ export default class PointsModel extends Observable {
 
     this.#points = [
       ...this.#points.slice(0, pointIndex),
-      structuredClone(updatedPoint),
+      structuredClone(adaptedPoint),
       ...this.#points.slice(pointIndex + 1),
     ];
 

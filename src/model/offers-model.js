@@ -1,9 +1,11 @@
-import { OFFERS } from '../mock/point.js';
-
 export default class OffersModel {
-  #offers = OFFERS;
+  #offers = [];
 
   getOffers() {
     return this.#offers;
+  }
+
+  setOffers(offers) {
+    this.#offers = structuredClone(offers);
   }
 }

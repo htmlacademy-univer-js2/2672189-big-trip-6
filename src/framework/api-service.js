@@ -26,19 +26,16 @@ export default class ApiService {
     body = null,
     headers = new Headers(),
   }) {
-    headers.append('Authorization', this._authorization);
+    headers.set('Authorization', this._authorization);
 
     const response = await fetch(
       `${this._endPoint}/${url}`,
       {method, body, headers},
     );
 
-    try {
-      ApiService.checkStatus(response);
-      return response;
-    } catch (err) {
-      ApiService.catchError(err);
-    }
+    ApiService.checkStatus(response);
+
+    return response;
   }
 
   /**
@@ -66,5 +63,30 @@ export default class ApiService {
    */
   static catchError(err) {
     throw err;
+  }
+
+  async getPoints() {
+    return this._load({url: 'points'})
+      .then(ApiService.parseResponse);
+  }
+
+  async getDestinations() {
+    return this._load({url: 'destinations'})
+      .then(ApiService.parseResponse);
+  }
+
+  async getOffers() {
+    return this._load({url: 'offers'})
+      .then(ApiService.parseResponse);
+  }
+
+  async updatePoint(point) {
+    return this._load({
+      url: `points/${point.id}`,
+      method: 'PUT',
+      body: JSON.stringify(point),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    })
+      .then(ApiService.parseResponse);
   }
 }
