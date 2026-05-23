@@ -86,7 +86,37 @@ export default class PointPresenter {
     document.removeEventListener('keydown', this.#escKeyDownHandler);
     remove(this.#pointComponent);
     remove(this.#editComponent);
+    this.#pointComponent = null;
+    this.#editComponent = null;
     this.#mode = Mode.DEFAULT;
+  }
+
+  isEditing() {
+    return this.#mode === Mode.EDITING;
+  }
+
+  setSaving() {
+    this.#editComponent.updateElement({
+      isDisabled: true,
+      saveButtonText: 'Saving...',
+    });
+  }
+
+  setDeleting() {
+    this.#editComponent.updateElement({
+      isDisabled: true,
+      resetButtonText: 'Deleting...',
+    });
+  }
+
+  setAborting() {
+    this.#editComponent.updateElement({
+      isDisabled: false,
+      saveButtonText: 'Save',
+      resetButtonText: this.#isNewPoint ? 'Cancel' : 'Delete',
+    });
+
+    this.#editComponent.shake();
   }
 
   #replacePointWithForm() {

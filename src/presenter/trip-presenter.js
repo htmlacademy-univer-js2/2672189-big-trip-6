@@ -7,6 +7,7 @@ import EventListView from '../view/event-list-view.js';
 import EmptyView from '../view/empty-view.js';
 import PointPresenter from './point-presenter.js';
 import { ActionType, FilterType, SortType } from '../const.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 function sortByDay(pointA, pointB) {
   return pointA.dateFrom - pointB.dateFrom;
@@ -88,6 +89,7 @@ export default class TripPresenter {
   #currentSortType = SortType.DAY;
   #isCreatingNewPoint = false;
   #addButtonElement = null;
+  #uiBlocker = new UiBlocker({lowerLimit: 300, upperLimit: 1000});
 
   constructor({ mainContainer, headerContainer, pointsModel, filterModel, destinationsModel, offersModel }) {
     this.#mainContainer = mainContainer;
@@ -225,19 +227,56 @@ export default class TripPresenter {
   }
 
   #handleViewAction = (actionType, _updateType, update) => {
-    switch (actionType) {
-      case ActionType.UPDATE_POINT:
-        this.#pointsModel.updatePoint(update).catch(() => {});
-        break;
-      case ActionType.ADD_POINT:
-        this.#isCreatingNewPoint = false;
-        this.#pointsModel.addPoint(update);
-        break;
-      case ActionType.DELETE_POINT:
-        this.#pointsModel.removePoint(update.id);
-        break;
-      default:
-        break;
+    const pointPresenter = update.id ? this.#pointPresenters.get(update.id) : this.#newPointPresenter;
+
+    this.#uiBlocker.block();
+
+    if (actionType === ActionType.ADD_POINT) {
+      this.#isCreatingNewPoint = false;
+    }
+
+    if (actionType === ActionType.UPDATE_POINT && pointPresenter?.isEditing()) {
+      pointPresenter.setSaving();
+    }
+
+    if (actionType === ActionType.ADD_POINT) {
+      pointPresenter?.setSaving();
+    }
+
+    if (actionType === ActionType.DELETE_POINT) {
+      pointPresenter?.setDeleting();
+    }
+
+    this.#updatePoint(actionType, update, pointPresenter);
+  };
+
+  #updatePoint = async (actionType, update, pointPresenter) => {
+    try {
+      switch (actionType) {
+        case ActionType.UPDATE_POINT:
+          await this.#pointsModel.updatePoint(update);
+          break;
+        case ActionType.ADD_POINT:
+          await this.#pointsModel.createPoint(update);
+          this.#newPointPresenter?.destroy();
+          this.#newPointPresenter = null;
+          break;
+        case ActionType.DELETE_POINT:
+          await this.#pointsModel.removePoint(update.id);
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      if (actionType === ActionType.ADD_POINT) {
+        this.#isCreatingNewPoint = true;
+      }
+
+      if (actionType === ActionType.ADD_POINT || pointPresenter?.isEditing()) {
+        pointPresenter?.setAborting();
+      }
+    } finally {
+      this.#uiBlocker.unblock();
     }
   };
 

@@ -89,4 +89,21 @@ export default class ApiService {
     })
       .then(ApiService.parseResponse);
   }
+
+  async createPoint(point) {
+    return this._load({
+      url: 'points',
+      method: 'POST',
+      body: JSON.stringify(point),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    })
+      .then(ApiService.parseResponse);
+  }
+
+  async deletePoint(pointId) {
+    return this._load({
+      url: `points/${pointId}`,
+      method: 'DELETE',
+    });
+  }
 }
