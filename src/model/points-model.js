@@ -57,9 +57,22 @@ export default class PointsModel extends Observable {
     ];
 
     this._notify(UpdateType.PATCH);
+
+    return adaptedPoint;
   }
 
-  removePoint(pointId) {
+  async createPoint(newPoint) {
+    const response = await this.#apiService.createPoint(adaptPointToServer(newPoint, {includeId: false}));
+    const adaptedPoint = adaptPointToClient(response);
+
+    this.#points = [structuredClone(adaptedPoint), ...this.#points];
+    this._notify(UpdateType.MAJOR);
+
+    return adaptedPoint;
+  }
+
+  async removePoint(pointId) {
+    await this.#apiService.deletePoint(pointId);
     this.#points = this.#points.filter((point) => point.id !== pointId);
     this._notify(UpdateType.MAJOR);
   }

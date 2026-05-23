@@ -16,13 +16,16 @@ export function adaptPointToClient(point) {
   };
 }
 
-export function adaptPointToServer(point) {
+export function adaptPointToServer(point, { includeId = true } = {}) {
   const serverPoint = {
-    id: point.id,
     destination: point.destination,
     offers: [...point.offers],
     type: point.type,
   };
+
+  if (includeId) {
+    serverPoint.id = point.id;
+  }
 
   serverPoint['base_price'] = Number(point.basePrice);
   serverPoint['date_from'] = point.dateFrom.toISOString();
