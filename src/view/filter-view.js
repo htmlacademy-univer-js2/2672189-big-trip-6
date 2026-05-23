@@ -3,18 +3,19 @@ import AbstractView from '../framework/view/abstract-view.js';
 function createFilterTemplate(filters) {
   return `
     <form class="trip-filters" action="#" method="get">
-      ${filters.map(({ name, isDisabled, isChecked }) => `
+      ${filters.map(({ name, label, isDisabled, isChecked }) => `
         <div class="trip-filters__filter">
           <input
             id="filter-${name}"
             class="trip-filters__filter-input visually-hidden"
             type="radio"
             name="trip-filter"
+            value="${name}"
             ${isChecked ? 'checked' : ''}
             ${isDisabled ? 'disabled' : ''}
           >
           <label class="trip-filters__filter-label" for="filter-${name}">
-            ${name}
+            ${label}
           </label>
         </div>
       `).join('')}
@@ -25,6 +26,7 @@ function createFilterTemplate(filters) {
 
 export default class FilterView extends AbstractView {
   #filters;
+  #filterChangeHandler = null;
 
   constructor(filters) {
     super();
@@ -34,4 +36,20 @@ export default class FilterView extends AbstractView {
   get template() {
     return createFilterTemplate(this.#filters);
   }
+
+  setFilterChangeHandler(callback) {
+    this.#filterChangeHandler = callback;
+
+    this.element
+      .querySelector('.trip-filters')
+      .addEventListener('change', this.#filterChangeHandlerClick);
+  }
+
+  #filterChangeHandlerClick = (evt) => {
+    if (!evt.target.matches('.trip-filters__filter-input')) {
+      return;
+    }
+
+    this.#filterChangeHandler?.(evt.target.value);
+  };
 }
