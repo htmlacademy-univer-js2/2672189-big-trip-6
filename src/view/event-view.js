@@ -69,6 +69,7 @@ function createOffersTemplate(offers) {
 function createEventTemplate(point) {
   const destination = getDestination(point);
   const offers = getOffersForPoint(point);
+  const favoriteClassName = point.isFavorite ? 'event__favorite-btn--active' : '';
 
   const dateFrom = formatDate(point.dateFrom);
   const timeFrom = formatTime(point.dateFrom);
@@ -95,6 +96,12 @@ function createEventTemplate(point) {
           &euro;&nbsp;<span class="event__price-value">${point.basePrice}</span>
         </p>
         ${createOffersTemplate(offers)}
+        <button class="event__favorite-btn ${favoriteClassName}" type="button">
+          <span class="visually-hidden">Add to favorite</span>
+          <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
+            <path d="M14 21l-8.22899 4.3262 1.57159-9.1631L.685209 9.67376 9.8855 8.33688 14 0l4.1145 8.33688 9.2003 1.33688-6.6574 6.48934 1.5716 9.1631L14 21z"/>
+          </svg>
+        </button>
         <button class="event__rollup-btn" type="button">
           <span class="visually-hidden">Open event</span>
         </button>
@@ -119,5 +126,14 @@ export default class EventView extends AbstractView {
     this.element
       .querySelector('.event__rollup-btn')
       .addEventListener('click', callback);
+  }
+
+  setFavoriteClickHandler(callback) {
+    this.element
+      .querySelector('.event__favorite-btn')
+      .addEventListener('click', (evt) => {
+        evt.preventDefault();
+        callback();
+      });
   }
 }

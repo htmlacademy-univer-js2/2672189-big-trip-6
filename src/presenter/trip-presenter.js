@@ -1,12 +1,11 @@
-import { render, replace } from '../framework/render.js';
+import { render } from '../framework/render.js';
 
 import TripInfoView from '../view/trip-info-view.js';
 import FilterView from '../view/filter-view.js';
 import SortView from '../view/sort-view.js';
 import EventListView from '../view/event-list-view.js';
-import EventView from '../view/event-view.js';
-import EventEditView from '../view/event-edit-view.js';
 import EmptyView from '../view/empty-view.js';
+import PointPresenter from './point-presenter.js';
 
 export default class TripPresenter {
   #mainContainer;
@@ -15,6 +14,7 @@ export default class TripPresenter {
   #pointsModel;
 
   #eventListComponent = new EventListView();
+  #pointPresenters = new Map();
 
   constructor({ mainContainer, headerContainer, filterContainer, pointsModel }) {
     this.#mainContainer = mainContainer;
@@ -42,40 +42,22 @@ export default class TripPresenter {
   }
 
   #renderPoint(point) {
-    const pointComponent = new EventView(point);
-    const editComponent = new EventEditView(point);
-
-    const onEscKeyDown = (evt) => {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        this.#replaceFormWithPoint(pointComponent, editComponent);
-        document.removeEventListener('keydown', onEscKeyDown);
-      }
-    };
-
-    pointComponent.setEditClickHandler(() => {
-      this.#replacePointWithForm(pointComponent, editComponent);
-      document.addEventListener('keydown', onEscKeyDown);
+    const pointPresenter = new PointPresenter({
+      pointListContainer: this.#eventListComponent.element,
+      onDataChange: this.#handlePointChange,
+      onModeChange: this.#handleModeChange,
     });
 
-    editComponent.setSubmitHandler(() => {
-      this.#replaceFormWithPoint(pointComponent, editComponent);
-      document.removeEventListener('keydown', onEscKeyDown);
-    });
-
-    editComponent.setRollupClickHandler(() => {
-      this.#replaceFormWithPoint(pointComponent, editComponent);
-      document.removeEventListener('keydown', onEscKeyDown);
-    });
-
-    render(pointComponent, this.#eventListComponent.element);
+    pointPresenter.init(point);
+    this.#pointPresenters.set(point.id, pointPresenter);
   }
 
-  #replacePointWithForm(pointComponent, editComponent) {
-    replace(editComponent, pointComponent);
-  }
+  #handlePointChange = (updatedPoint) => {
+    this.#pointsModel.updatePoint(updatedPoint);
+    this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
+  };
 
-  #replaceFormWithPoint(pointComponent, editComponent) {
-    replace(pointComponent, editComponent);
-  }
+  #handleModeChange = () => {
+    this.#pointPresenters.forEach((pointPresenter) => pointPresenter.resetView());
+  };
 }
