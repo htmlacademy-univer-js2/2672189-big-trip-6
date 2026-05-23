@@ -2,6 +2,7 @@ import { render, replace, remove } from '../framework/render.js';
 
 import EventView from '../view/event-view.js';
 import EventEditView from '../view/event-edit-view.js';
+import { ActionType, UpdateType } from '../const.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -12,32 +13,46 @@ export default class PointPresenter {
   #pointListContainer;
   #onDataChange;
   #onModeChange;
+  #onViewClose;
 
   #point;
   #pointComponent = null;
   #editComponent = null;
   #mode = Mode.DEFAULT;
+  #isNewPoint = false;
 
-  constructor({ pointListContainer, onDataChange, onModeChange }) {
+  constructor({ pointListContainer, onDataChange, onModeChange, onViewClose }) {
     this.#pointListContainer = pointListContainer;
     this.#onDataChange = onDataChange;
     this.#onModeChange = onModeChange;
+    this.#onViewClose = onViewClose;
   }
 
-  init(point) {
+  init(point, isNewPoint = false) {
     this.#point = point;
+    this.#isNewPoint = isNewPoint;
 
     const prevPointComponent = this.#pointComponent;
     const prevEditComponent = this.#editComponent;
 
-    this.#pointComponent = new EventView(this.#point);
+    this.#pointComponent = isNewPoint ? null : new EventView(this.#point);
     this.#editComponent = new EventEditView(this.#point);
 
-    this.#pointComponent.setEditClickHandler(this.#handleEditClick);
-    this.#pointComponent.setFavoriteClickHandler(this.#handleFavoriteClick);
+    if (this.#pointComponent !== null) {
+      this.#pointComponent.setEditClickHandler(this.#handleEditClick);
+      this.#pointComponent.setFavoriteClickHandler(this.#handleFavoriteClick);
+    }
 
     this.#editComponent.setSubmitHandler(this.#handleFormSubmit);
+    this.#editComponent.setResetClickHandler(this.#handleFormResetClick);
     this.#editComponent.setRollupClickHandler(this.#handleFormRollupClick);
+
+    if (isNewPoint) {
+      render(this.#editComponent, this.#pointListContainer);
+      document.addEventListener('keydown', this.#escKeyDownHandler);
+      this.#mode = Mode.EDITING;
+      return;
+    }
 
     if (prevPointComponent === null || prevEditComponent === null) {
       render(this.#pointComponent, this.#pointListContainer);
@@ -58,7 +73,7 @@ export default class PointPresenter {
   }
 
   resetView() {
-    if (this.#mode !== Mode.DEFAULT) {
+    if (this.#mode !== Mode.DEFAULT && !this.#isNewPoint) {
       this.#replaceFormWithPoint();
     }
   }
@@ -77,9 +92,21 @@ export default class PointPresenter {
   }
 
   #replaceFormWithPoint() {
+    if (this.#isNewPoint) {
+      this.#closeNewPointForm();
+      return;
+    }
+
     replace(this.#pointComponent, this.#editComponent);
     document.removeEventListener('keydown', this.#escKeyDownHandler);
     this.#mode = Mode.DEFAULT;
+  }
+
+  #closeNewPointForm() {
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    remove(this.#editComponent);
+    this.#mode = Mode.DEFAULT;
+    this.#onViewClose?.();
   }
 
   #escKeyDownHandler = (evt) => {
@@ -94,16 +121,35 @@ export default class PointPresenter {
     this.#replacePointWithForm();
   };
 
-  #handleFormSubmit = () => {
-    this.#replaceFormWithPoint();
+  #handleFormSubmit = (updatedPoint) => {
+    const normalizedPoint = {
+      ...updatedPoint,
+      basePrice: Number(updatedPoint.basePrice),
+    };
+
+    if (this.#isNewPoint) {
+      this.#onDataChange(ActionType.ADD_POINT, UpdateType.MINOR, normalizedPoint);
+      return;
+    }
+
+    this.#onDataChange(ActionType.UPDATE_POINT, UpdateType.MINOR, normalizedPoint);
   };
 
   #handleFormRollupClick = () => {
     this.#replaceFormWithPoint();
   };
 
+  #handleFormResetClick = () => {
+    if (this.#isNewPoint) {
+      this.#closeNewPointForm();
+      return;
+    }
+
+    this.#onDataChange(ActionType.DELETE_POINT, UpdateType.MAJOR, this.#point);
+  };
+
   #handleFavoriteClick = () => {
-    this.#onDataChange({
+    this.#onDataChange(ActionType.UPDATE_POINT, UpdateType.PATCH, {
       ...this.#point,
       isFavorite: !this.#point.isFavorite,
     });

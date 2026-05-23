@@ -157,11 +157,11 @@ function createEditFormTemplate(point) {
 
           <div class="event__field-group  event__field-group--price">
             <label class="event__label">&euro;</label>
-            <input class="event__input  event__input--price" type="number" name="event-price" value="${point.basePrice}">
+            <input class="event__input  event__input--price" type="number" min="0" step="1" name="event-price" value="${point.basePrice}">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">Delete</button>
+          <button class="event__reset-btn" type="reset">${point.id ? 'Delete' : 'Cancel'}</button>
           <button class="event__rollup-btn" type="button">
             <span class="visually-hidden">Close event</span>
           </button>
@@ -178,6 +178,7 @@ function createEditFormTemplate(point) {
 
 export default class EventEditView extends AbstractStatefulView {
   #submitCallback = null;
+  #resetCallback = null;
   #rollupCallback = null;
   #startDatePicker = null;
   #endDatePicker = null;
@@ -199,6 +200,13 @@ export default class EventEditView extends AbstractStatefulView {
       .addEventListener('submit', this.#formSubmitHandler);
   }
 
+  setResetClickHandler(callback) {
+    this.#resetCallback = callback;
+    this.element
+      .querySelector('.event__reset-btn')
+      .addEventListener('click', this.#resetClickHandler);
+  }
+
   setRollupClickHandler(callback) {
     this.#rollupCallback = callback;
     this.element
@@ -208,6 +216,7 @@ export default class EventEditView extends AbstractStatefulView {
 
   _restoreHandlers() {
     this.setSubmitHandler(this.#submitCallback);
+    this.setResetClickHandler(this.#resetCallback);
     this.setRollupClickHandler(this.#rollupCallback);
     this.#setInnerHandlers();
     this.#setDatepickers();
@@ -281,6 +290,11 @@ export default class EventEditView extends AbstractStatefulView {
     this.#submitCallback?.(this._state);
   };
 
+  #resetClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#resetCallback?.();
+  };
+
   #rollupClickHandler = (evt) => {
     evt.preventDefault();
     this.#rollupCallback?.();
@@ -329,8 +343,12 @@ export default class EventEditView extends AbstractStatefulView {
   };
 
   #priceInputHandler = (evt) => {
+    if (evt.target.value !== '' && !/^\d+$/.test(evt.target.value)) {
+      return;
+    }
+
     this._setState({
-      basePrice: evt.target.value,
+      basePrice: evt.target.value === '' ? '' : Number(evt.target.value),
     });
   };
 }

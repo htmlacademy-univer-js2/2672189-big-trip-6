@@ -1,16 +1,59 @@
+import Observable from '../framework/observable.js';
 import { POINTS } from '../mock/point.js';
+import { FilterType, UpdateType } from '../const.js';
 
-export default class PointsModel {
-  #points = POINTS;
+function filterPointsByType(points, filterType) {
+  const now = new Date();
 
-  getPoints() {
-    return this.#points;
+  switch (filterType) {
+    case FilterType.FUTURE:
+      return points.filter((point) => point.dateFrom > now);
+    case FilterType.PRESENT:
+      return points.filter((point) => point.dateFrom <= now && point.dateTo >= now);
+    case FilterType.PAST:
+      return points.filter((point) => point.dateTo < now);
+    case FilterType.EVERYTHING:
+    default:
+      return [...points];
+  }
+}
+
+export default class PointsModel extends Observable {
+  #points = structuredClone(POINTS);
+
+  getPoints(filterType = FilterType.EVERYTHING) {
+    return filterPointsByType(this.#points, filterType);
+  }
+
+  setPoints(points) {
+    this.#points = structuredClone(points);
+    this._notify(UpdateType.MAJOR);
+  }
+
+  addPoint(point) {
+    this.#points = [structuredClone(point), ...this.#points];
+    this._notify(UpdateType.MAJOR);
   }
 
   updatePoint(updatedPoint) {
-    this.#points = this.#points.map((point) =>
-      point.id === updatedPoint.id ? updatedPoint : point
-    );
+    const pointIndex = this.#points.findIndex((point) => point.id === updatedPoint.id);
+
+    if (pointIndex === -1) {
+      return;
+    }
+
+    this.#points = [
+      ...this.#points.slice(0, pointIndex),
+      structuredClone(updatedPoint),
+      ...this.#points.slice(pointIndex + 1),
+    ];
+
+    this._notify(UpdateType.PATCH);
+  }
+
+  removePoint(pointId) {
+    this.#points = this.#points.filter((point) => point.id !== pointId);
+    this._notify(UpdateType.MAJOR);
   }
 }
 
