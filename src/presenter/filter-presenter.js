@@ -30,7 +30,7 @@ export default class FilterPresenter {
     const filters = Object.values(FilterType).map((filterType) => ({
       name: filterType,
       label: getFilterLabel(filterType),
-      isDisabled: filterType !== FilterType.EVERYTHING && this.#pointsModel.getPoints(filterType).length === 0,
+      isDisabled: this.#pointsModel.getPoints(filterType).length === 0,
       isChecked: filterType === currentFilter,
     }));
 

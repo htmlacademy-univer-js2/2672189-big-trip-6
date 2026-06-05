@@ -1,3 +1,4 @@
+import './view/abstract-view.css';
 import AbstractView from './view/abstract-view.js';
 
 /** @enum {string} Перечисление возможных позиций для отрисовки */

@@ -88,14 +88,14 @@ function getEmptyMessage(filterType) {
   }
 }
 
-function createNewPoint(destinations) {
+function createNewPoint() {
   return {
     id: null,
     type: 'flight',
     basePrice: 0,
-    dateFrom: new Date(),
-    dateTo: dayjs().add(1, 'hour').toDate(),
-    destination: destinations[0]?.id ?? null,
+    dateFrom: null,
+    dateTo: null,
+    destination: null,
     offers: [],
     isFavorite: false,
   };
@@ -117,7 +117,7 @@ export default class TripPresenter {
   #currentSortType = SortType.DAY;
   #isCreatingNewPoint = false;
   #addButtonElement = null;
-  #uiBlocker = new UiBlocker({lowerLimit: 300, upperLimit: 1000});
+  #uiBlocker = new UiBlocker({lowerLimit: 300, upperLimit: 500});
 
   constructor({ mainContainer, headerContainer, pointsModel, filterModel, destinationsModel, offersModel }) {
     this.#mainContainer = mainContainer;
@@ -170,7 +170,18 @@ export default class TripPresenter {
 
   #renderTripInfo() {
     const previousTripInfoComponent = this.#tripInfoComponent;
-    const tripInfo = getTripInfo(this.#getPoints(), this.#destinationsModel.getDestinations(), this.#offersModel.getOffers());
+    const allPoints = this.#pointsModel.getPoints(FilterType.EVERYTHING);
+
+    if (allPoints.length === 0) {
+      if (previousTripInfoComponent !== null) {
+        remove(previousTripInfoComponent);
+        this.#tripInfoComponent = null;
+      }
+
+      return;
+    }
+
+    const tripInfo = getTripInfo(allPoints, this.#destinationsModel.getDestinations());
 
     this.#tripInfoComponent = new TripInfoView(tripInfo);
 
@@ -257,6 +268,7 @@ export default class TripPresenter {
   #handleViewAction = (actionType, _updateType, update) => {
     const pointPresenter = update.id ? this.#pointPresenters.get(update.id) : this.#newPointPresenter;
 
+    this.#toggleInterfaceState(true);
     this.#uiBlocker.block();
 
     if (actionType === ActionType.ADD_POINT) {
@@ -300,13 +312,20 @@ export default class TripPresenter {
         this.#isCreatingNewPoint = true;
       }
 
-      if (actionType === ActionType.ADD_POINT || pointPresenter?.isEditing()) {
-        pointPresenter?.setAborting();
-      }
+      pointPresenter?.setAborting();
     } finally {
       this.#uiBlocker.unblock();
+      setTimeout(() => {
+        this.#toggleInterfaceState(false);
+        if (actionType === ActionType.ADD_POINT) {
+          this.#addButtonElement.disabled = false;
+        }
+      }, 500);
     }
   };
+
+  #toggleInterfaceState() {
+  }
 
   #handleModeChange = () => {
     this.#newPointPresenter?.destroy();
@@ -316,6 +335,7 @@ export default class TripPresenter {
 
   #handleNewPointClose = () => {
     this.#isCreatingNewPoint = false;
+    this.#addButtonElement.disabled = false;
     this.#renderBoard();
   };
 
@@ -351,6 +371,7 @@ export default class TripPresenter {
 
     this.#isCreatingNewPoint = true;
     this.#currentSortType = SortType.DAY;
+    this.#addButtonElement.disabled = true;
 
     const filterChanged = this.#filterModel.setFilter(FilterType.EVERYTHING, {
       keepNewPointOpen: true,
