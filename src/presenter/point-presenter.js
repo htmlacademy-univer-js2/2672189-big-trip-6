@@ -110,16 +110,30 @@ export default class PointPresenter {
   }
 
   setAborting() {
-    this.#editComponent.updateElement({
-      isDisabled: false,
-      saveButtonText: 'Save',
-      resetButtonText: this.#isNewPoint ? 'Cancel' : 'Delete',
-    });
+    if (this.#mode === Mode.EDITING || this.#isNewPoint) {
+      this.#editComponent.updateElement({
+        isDisabled: false,
+        saveButtonText: 'Save',
+        resetButtonText: this.#isNewPoint ? 'Cancel' : 'Delete',
+      });
 
-    this.#editComponent.shake();
+      this.#editComponent.shake();
+      return;
+    }
+
+    if (this.#pointComponent !== null) {
+      this.#pointComponent.shake();
+    }
   }
 
   #replacePointWithForm() {
+    if (this.#editComponent === null) {
+      this.#editComponent = new EventEditView(this.#point, this.#destinations, this.#offers);
+      this.#editComponent.setSubmitHandler(this.#handleFormSubmit);
+      this.#editComponent.setResetClickHandler(this.#handleFormResetClick);
+      this.#editComponent.setRollupClickHandler(this.#handleFormRollupClick);
+    }
+
     replace(this.#editComponent, this.#pointComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
     this.#mode = Mode.EDITING;
@@ -132,6 +146,8 @@ export default class PointPresenter {
     }
 
     replace(this.#pointComponent, this.#editComponent);
+    remove(this.#editComponent);
+    this.#editComponent = null;
     document.removeEventListener('keydown', this.#escKeyDownHandler);
     this.#mode = Mode.DEFAULT;
   }

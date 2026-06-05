@@ -28,7 +28,7 @@ function formatDuration(dateFrom, dateTo) {
   const diff = dayjs(dateTo).diff(dayjs(dateFrom));
   const d = dayjs.duration(diff);
 
-  const days = d.days();
+  const days = Math.floor(d.asDays());
   const hours = d.hours();
   const minutes = d.minutes();
 
@@ -56,8 +56,8 @@ function createOffersTemplate(offers) {
   ).join('');
 
   return `
-    <section class="event__section  event__section--offers">
-      <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+    <section class="event__offers">
+      <h3 class="event__offers-title">Offers</h3>
       <ul class="event__selected-offers">
         ${items}
       </ul>

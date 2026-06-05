@@ -40,9 +40,7 @@ export default class FilterView extends AbstractView {
   setFilterChangeHandler(callback) {
     this.#filterChangeHandler = callback;
 
-    this.element
-      .querySelector('.trip-filters')
-      .addEventListener('change', this.#filterChangeHandlerClick);
+    this.element.addEventListener('change', this.#filterChangeHandlerClick);
   }
 
   #filterChangeHandlerClick = (evt) => {
