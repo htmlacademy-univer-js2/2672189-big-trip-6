@@ -5,7 +5,7 @@ import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
 
 function formatDate(date) {
-  return dayjs(date).format('MMM DD');
+  return dayjs(date).format('DD MMM');
 }
 
 function createTripInfoTemplate(tripInfo = {}) {

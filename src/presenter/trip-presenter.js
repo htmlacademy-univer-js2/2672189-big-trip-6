@@ -28,7 +28,35 @@ function getDestinationName(destinationId, destinations) {
   return destinations.find((destination) => destination.id === destinationId)?.name ?? '';
 }
 
-function getTripInfo(points, destinations) {
+function getPointExtraCost(point, offers) {
+  const offersByType = offers.find((offer) => offer.type === point.type);
+
+  if (!offersByType) {
+    return 0;
+  }
+
+  return offersByType.offers.reduce((sum, offer) => (
+    point.offers.includes(offer.id) ? sum + Number(offer.price) : sum
+  ), 0);
+}
+
+function getTripTitle(points, destinations) {
+  const destinationNames = points
+    .map((point) => getDestinationName(point.destination, destinations))
+    .filter(Boolean);
+
+  if (destinationNames.length === 0) {
+    return '';
+  }
+
+  if (destinationNames.length > 3) {
+    return `${destinationNames[0]} ... ${destinationNames[destinationNames.length - 1]}`;
+  }
+
+  return destinationNames.join(' — ');
+}
+
+function getTripInfo(points, destinations, offers) {
   if (points.length === 0) {
     return {
       title: '',
@@ -41,8 +69,8 @@ function getTripInfo(points, destinations) {
   return {
     dateFrom: dayjs(sortedByStart[0].dateFrom).toDate(),
     dateTo: dayjs(sortedByStart[sortedByStart.length - 1].dateTo).toDate(),
-    title: sortedByStart.map((point) => getDestinationName(point.destination, destinations)).filter(Boolean).join(' — '),
-    cost: points.reduce((sum, point) => sum + Number(point.basePrice), 0),
+    title: getTripTitle(sortedByStart, destinations),
+    cost: points.reduce((sum, point) => sum + Number(point.basePrice) + getPointExtraCost(point, offers), 0),
   };
 }
 
