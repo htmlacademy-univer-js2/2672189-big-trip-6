@@ -1,6 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import { encode } from 'he';
 
 dayjs.extend(duration);
 
@@ -14,7 +15,7 @@ function createTripInfoTemplate(tripInfo = {}) {
   return `
     <section class="trip-main__trip-info  trip-info">
       <div class="trip-info__main">
-        <h1 class="trip-info__title">${title}</h1>
+        <h1 class="trip-info__title">${encode(title)}</h1>
         <p class="trip-info__dates">${dateFrom && dateTo ? `${formatDate(dateFrom)} — ${formatDate(dateTo)}` : ''}</p>
       </div>
       <p class="trip-info__cost">

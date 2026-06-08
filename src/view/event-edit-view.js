@@ -2,6 +2,7 @@ import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import { encode } from 'he';
 
 const EVENT_TYPES = [
   'taxi',
@@ -26,6 +27,7 @@ function getOffersByType(type, offers) {
 
 function createEventTypeItemsTemplate(currentType, pointId, isDisabled) {
   return EVENT_TYPES.map((type) => {
+    const safeType = encode(type);
     const isChecked = type === currentType ? 'checked' : '';
     const disabled = isDisabled ? 'disabled' : '';
 
@@ -36,18 +38,18 @@ function createEventTypeItemsTemplate(currentType, pointId, isDisabled) {
           class="event__type-input visually-hidden"
           type="radio"
           name="event-type"
-          value="${type}"
+          value="${safeType}"
           ${isChecked}
           ${disabled}
         >
-        <label class="event__type-label event__type-label--${type}" for="event-type-${type}-${pointId}">${type}</label>
+        <label class="event__type-label event__type-label--${type}" for="event-type-${type}-${pointId}">${safeType}</label>
       </div>
     `;
   }).join('');
 }
 
 function createDestinationListTemplate(pointId, destinations) {
-  const destinationOptions = destinations.map((destination) => `<option value="${destination.name}"></option>`).join('');
+  const destinationOptions = destinations.map((destination) => `<option value="${encode(destination.name)}"></option>`).join('');
 
   return `
     <datalist id="destination-list-${pointId}">
@@ -70,7 +72,7 @@ function createOffersEditTemplate(point, offers, destination, isDisabled) {
       <div class="event__offer-selector">
         <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.id}" type="checkbox" name="event-offer" ${checked} ${disabled}>
         <label class="event__offer-label" for="event-offer-${offer.id}">
-          <span class="event__offer-title">${offer.title}</span>
+          <span class="event__offer-title">${encode(offer.title)}</span>
           &plus;&euro;&nbsp;<span class="event__offer-price">${offer.price}</span>
         </label>
       </div>
@@ -93,7 +95,7 @@ function createDestinationPhotosTemplate(pictures) {
   }
 
   const photoItems = pictures
-    .map((picture) => `<img class="event__photo" src="${picture.src}" alt="${picture.description}">`)
+    .map((picture) => `<img class="event__photo" src="${encode(picture.src)}" alt="${encode(picture.description)}">`)
     .join('');
 
   return `
@@ -115,7 +117,7 @@ function createDestinationTemplate(point, destinations) {
   return `
     <section class="event__section  event__section--destination">
       <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-      <p class="event__destination-description">${destination.description}</p>
+      <p class="event__destination-description">${encode(destination.description)}</p>
       ${createDestinationPhotosTemplate(destination.pictures)}
     </section>
   `;
@@ -152,8 +154,8 @@ function createEditFormTemplate(point, destinations, offers, viewState = {}) {
           </div>
 
           <div class="event__field-group  event__field-group--destination">
-            <label class="event__label  event__type-output" for="event-destination-${pointId}">${point.type}</label>
-            <input class="event__input  event__input--destination" id="event-destination-${pointId}" type="text" name="event-destination" value="${destinationInputValue}" list="destination-list-${pointId}" ${isDisabled ? 'disabled' : ''}>
+            <label class="event__label  event__type-output" for="event-destination-${pointId}">${encode(point.type)}</label>
+            <input class="event__input  event__input--destination" id="event-destination-${pointId}" type="text" name="event-destination" value="${encode(destinationInputValue)}" list="destination-list-${pointId}" ${isDisabled ? 'disabled' : ''}>
             ${createDestinationListTemplate(pointId, destinations)}
           </div>
 
@@ -165,7 +167,7 @@ function createEditFormTemplate(point, destinations, offers, viewState = {}) {
 
           <div class="event__field-group  event__field-group--price">
             <label class="event__label">&euro;</label>
-            <input class="event__input  event__input--price" type="number" min="0" step="1" name="event-price" value="${point.basePrice}" ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input  event__input--price" type="number" min="0" step="1" name="event-price" value="${encode(String(point.basePrice))}" ${isDisabled ? 'disabled' : ''}>
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${saveButtonText}</button>

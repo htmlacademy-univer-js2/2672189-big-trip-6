@@ -181,7 +181,7 @@ export default class TripPresenter {
       return;
     }
 
-    const tripInfo = getTripInfo(allPoints, this.#destinationsModel.getDestinations());
+    const tripInfo = getTripInfo(allPoints, this.#destinationsModel.getDestinations(), this.#offersModel.getOffers());
 
     this.#tripInfoComponent = new TripInfoView(tripInfo);
 

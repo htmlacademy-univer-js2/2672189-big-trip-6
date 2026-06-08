@@ -1,6 +1,7 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import { encode } from 'he';
 
 dayjs.extend(duration);
 
@@ -50,7 +51,7 @@ function createOffersTemplate(offers) {
 
   const items = offers.map((offer) =>
     `<li class="event__offer">
-      <span class="event__offer-title">${offer.title}</span>
+      <span class="event__offer-title">${encode(offer.title)}</span>
       &plus;&euro;&nbsp;<span class="event__offer-price">${offer.price}</span>
     </li>`
   ).join('');
@@ -69,6 +70,8 @@ function createEventTemplate(point, destinations, offers) {
   const destination = getDestination(point, destinations);
   const selectedOffers = getOffersForPoint(point, offers);
   const favoriteClassName = point.isFavorite ? 'event__favorite-btn--active' : '';
+  const safePointType = encode(point.type);
+  const safeDestinationName = encode(destination?.name ?? '');
 
   const dateFrom = formatDate(point.dateFrom);
   const timeFrom = formatTime(point.dateFrom);
@@ -80,9 +83,9 @@ function createEventTemplate(point, destinations, offers) {
       <div class="event">
         <time class="event__date" datetime="${point.dateFrom.toISOString()}">${dateFrom}</time>
         <div class="event__type">
-          <img class="event__type-icon" width="42" height="42" src="img/icons/${point.type}.png" alt="Event type icon">
+          <img class="event__type-icon" width="42" height="42" src="img/icons/${safePointType}.png" alt="Event type icon">
         </div>
-        <h3 class="event__title">${point.type} ${destination?.name ?? ''}</h3>
+        <h3 class="event__title">${safePointType} ${safeDestinationName}</h3>
         <div class="event__schedule">
           <p class="event__time">
             <time class="event__start-time" datetime="${point.dateFrom.toISOString()}">${timeFrom}</time>
