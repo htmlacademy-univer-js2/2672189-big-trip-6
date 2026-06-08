@@ -1,4 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
+import { encode } from 'he';
 
 function createFilterTemplate(filters) {
   return `
@@ -6,16 +7,16 @@ function createFilterTemplate(filters) {
       ${filters.map(({ name, label, isDisabled, isChecked }) => `
         <div class="trip-filters__filter">
           <input
-            id="filter-${name}"
+            id="filter-${encode(name)}"
             class="trip-filters__filter-input visually-hidden"
             type="radio"
             name="trip-filter"
-            value="${name}"
+            value="${encode(name)}"
             ${isChecked ? 'checked' : ''}
             ${isDisabled ? 'disabled' : ''}
           >
-          <label class="trip-filters__filter-label" for="filter-${name}">
-            ${label}
+          <label class="trip-filters__filter-label" for="filter-${encode(name)}">
+            ${encode(label)}
           </label>
         </div>
       `).join('')}
