@@ -40,6 +40,8 @@ function getPointExtraCost(point, offers) {
   ), 0);
 }
 
+const MAX_VISIBLE_DESTINATION_NAMES = 3;
+
 function getTripTitle(points, destinations) {
   const destinationNames = points
     .map((point) => getDestinationName(point.destination, destinations))
@@ -49,7 +51,7 @@ function getTripTitle(points, destinations) {
     return '';
   }
 
-  if (destinationNames.length > 3) {
+  if (destinationNames.length > MAX_VISIBLE_DESTINATION_NAMES) {
     return `${destinationNames[0]} ... ${destinationNames[destinationNames.length - 1]}`;
   }
 

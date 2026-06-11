@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import { encode } from 'he';
+import { getDestination } from './destination.js';
 
 const EVENT_TYPES = [
   'taxi',
@@ -15,10 +16,6 @@ const EVENT_TYPES = [
   'sightseeing',
   'restaurant',
 ];
-
-function getDestination(point, destinations) {
-  return destinations.find((destination) => destination.id === point.destination);
-}
 
 function getOffersByType(type, offers) {
   const offersByType = offers.find((offer) => offer.type === type);
@@ -58,7 +55,7 @@ function createDestinationListTemplate(pointId, destinations) {
   `;
 }
 
-function createOffersEditTemplate(point, offers, destination, isDisabled) {
+function createOffersEditTemplate(point, offers, isDisabled) {
   const pointOffers = getOffersByType(point.type, offers);
 
   if (!pointOffers.length) {
@@ -178,7 +175,7 @@ function createEditFormTemplate(point, destinations, offers, viewState = {}) {
         </header>
 
         <section class="event__details">
-          ${createOffersEditTemplate(point, offers, destination, isDisabled)}
+          ${createOffersEditTemplate(point, offers, isDisabled)}
           ${createDestinationTemplate(point, destinations)}
         </section>
       </form>
