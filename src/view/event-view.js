@@ -2,12 +2,9 @@ import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import { encode } from 'he';
+import { getDestination } from './destination.js';
 
 dayjs.extend(duration);
-
-function getDestination(point, destinations) {
-  return destinations.find((destination) => destination.id === point.destination);
-}
 
 function getOffersForPoint(point, offers) {
   const offersByType = offers.find((offer) => offer.type === point.type);
